@@ -26,7 +26,6 @@ public class ThirdPersonController : MonoBehaviour
     private readonly float groundcheckRayCompensation = 0.25f;
     private readonly float groundcheckRayMaxDistance = 0.3f;
 
-
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
