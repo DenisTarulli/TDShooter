@@ -6,20 +6,26 @@ using UnityEngine.InputSystem;
 
 public class ThirdPersonController : MonoBehaviour
 {
-    private ThirdPersonActionsAsset playerActionsAsset;
-    private InputAction move;
-
-    private Rigidbody rb;
+    [Header("Movement Stats")]
     [SerializeField] private float movementForce;
     [SerializeField] private float jumpForce;
     [SerializeField] private float maxSpeed;
-    [SerializeField] private float rotationSpeed;
     [SerializeField] private float drag;
-    private float rayCompensation = 0.25f;
-    private float rayMaxDistance = 0.3f;
+    [SerializeField, Range(1f, 2f)] private float fallingCompensation;
     private Vector3 forceDirection;
 
+    [Header("References")]
+    [SerializeField] private Transform visualObject;
     [SerializeField] private Camera playerCamera;
+    [SerializeField] private LayerMask groundMask;
+    private ThirdPersonActionsAsset playerActionsAsset;
+    private InputAction move;
+    private Rigidbody rb;
+
+    // Groundcheck raycast parameters
+    private readonly float groundcheckRayCompensation = 0.25f;
+    private readonly float groundcheckRayMaxDistance = 0.3f;
+
 
     private void Awake()
     {
@@ -43,7 +49,8 @@ public class ThirdPersonController : MonoBehaviour
     private void FixedUpdate()
     {
         Movement();
-
+        ApplyDrag();
+        FallCompensation();
         LookAt();
     }
 
@@ -53,10 +60,7 @@ public class ThirdPersonController : MonoBehaviour
         forceDirection += move.ReadValue<Vector2>().y * movementForce * GetCameraForward(playerCamera);
 
         rb.AddForce(forceDirection, ForceMode.Impulse);
-        forceDirection = Vector3.zero;
-
-        if (rb.velocity.y < 0f)
-            rb.velocity -= Physics.gravity.y * Time.fixedDeltaTime * Vector3.down;
+        forceDirection = Vector3.zero;        
 
         Vector3 horizontalVelocity = rb.velocity;
         horizontalVelocity.y = 0f;
@@ -65,18 +69,34 @@ public class ThirdPersonController : MonoBehaviour
             rb.velocity = horizontalVelocity.normalized * maxSpeed + Vector3.up * rb.velocity.y;
     }
 
+    private void FallCompensation()
+    {
+        if (rb.velocity.y < 0f)
+            rb.velocity -= Physics.gravity.y * fallingCompensation * Time.fixedDeltaTime * Vector3.down;
+    }
+
+    private (bool success, Vector3 position) GetMousePosition()
+    {
+        var ray = playerCamera.ScreenPointToRay(Input.mousePosition);
+
+        if (Physics.Raycast(ray, out var hitInfo, Mathf.Infinity, groundMask))
+            return (success: true, position: hitInfo.point);
+        else
+            return (success: false, position: Vector3.zero);
+    }
+
     private void LookAt()
     {
-        Vector3 direction = rb.velocity;
-        direction.y = 0f;
+        var (success, position) = GetMousePosition();
 
-        if (move.ReadValue<Vector2>().sqrMagnitude > 0.1f && direction.magnitude > 0.1f)
+        if (success)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(direction, Vector3.up);
-            rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime);
+            var direction = position - transform.position;
+
+            direction.y = 0f;
+
+            visualObject.transform.forward = direction;
         }
-        else
-            rb.angularVelocity = Vector3.zero;
     }
 
     private Vector3 GetCameraForward(Camera playerCamera)
@@ -103,10 +123,25 @@ public class ThirdPersonController : MonoBehaviour
 
     private bool IsGrounded()
     {
-        Ray ray = new(transform.position + Vector3.up * rayCompensation, Vector3.down);
-        if (Physics.Raycast(ray, out _, rayMaxDistance))
+        Ray ray = new(transform.position + Vector3.up * groundcheckRayCompensation, Vector3.down);
+        if (Physics.Raycast(ray, out _, groundcheckRayMaxDistance))
             return true;
         else
             return false;
+    }
+
+    private void ApplyDrag()
+    {
+        Vector3 vel = rb.velocity;
+
+        Vector2 inputVector = move.ReadValue<Vector2>();
+
+        if (inputVector.x == 0 && inputVector.y == 0)
+        {
+            vel.x *= drag;
+            vel.z *= drag;
+        }
+
+        rb.velocity = vel;
     }
 }
