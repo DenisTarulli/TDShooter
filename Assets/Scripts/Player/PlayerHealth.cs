@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,23 +10,31 @@ public class PlayerHealth : MonoBehaviour
     private bool canTakeDamage;
     private float currentHealth;
 
+    public static event Action<float> OnHurt;
+    public float MaxHealth { get => maxHealth; }
+    public float CurrentHealth { get => currentHealth; }
+
+    private void Awake()
+    {
+        currentHealth = maxHealth;        
+    }
+
     private void Start()
     {
-        currentHealth = maxHealth;
+        canTakeDamage = true;
     }
 
     private void TakeDamage(float damageToTake)
     {
         if (!canTakeDamage) return;
 
-        Debug.Log(currentHealth);
-
         StartCoroutine(nameof(Invulnerability));
         currentHealth -= damageToTake;
+        OnHurt?.Invoke(currentHealth);
 
         if (currentHealth <= 0f)
         {
-            // Placeholder
+            GameManager.Instance.GameOver();
         }
     }
 
