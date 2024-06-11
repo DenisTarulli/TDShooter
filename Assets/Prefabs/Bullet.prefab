@@ -242,7 +242,7 @@ GameObject:
   - component: {fileID: -7130642859386077058}
   m_Layer: 0
   m_Name: Bullet
-  m_TagString: Untagged
+  m_TagString: Bullet
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -308,11 +308,11 @@ MonoBehaviour:
   bulletLifeTime: 4
   hitEffectDuration: 1
   rayCheckDistance: 10
-  hitEffect: {fileID: 100002, guid: 20b31fcfaed0cb842a56fbbe2419428f, type: 3}
+  knockbackForce: 5
+  hitEffectWall: {fileID: 100002, guid: 20b31fcfaed0cb842a56fbbe2419428f, type: 3}
+  hitEffectEnemy: {fileID: 3425531038001637319, guid: b584254d1a3434b418510ef6cbb163e9,
+    type: 3}
   hitEffectRotation: {fileID: 5384567931405293814}
-  hittableLayer:
-    serializedVersion: 2
-    m_Bits: 128
 --- !u!1 &3660921002770769239
 GameObject:
   m_ObjectHideFlags: 0

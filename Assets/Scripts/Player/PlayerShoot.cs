@@ -7,11 +7,14 @@ public class PlayerShoot : MonoBehaviour
 {
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private float fireRate;
+    [SerializeField] private float bulletDamage;
     [SerializeField] private float bulletForce;
     [SerializeField] private Transform spawnPoint;
     [SerializeField] private ParticleSystem muzzleFlash;
     [SerializeField] private Vector3 bulletSpread;
     private float nextTimeToShoot;
+
+    public float BulletDamage { get => bulletDamage; }
 
     private void Start()
     {
